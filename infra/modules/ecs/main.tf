@@ -2,7 +2,7 @@ locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
-# security groups 
+# --- security groups ---------------------------------------------------
 
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb-sg"
@@ -50,7 +50,7 @@ resource "aws_security_group" "ecs" {
   tags = merge(var.tags, { Name = "${local.name_prefix}-ecs-sg" })
 }
 
-# --- load balancer 
+# --- load balancer -------------------------------------------------------
 
 resource "aws_lb" "this" {
   name               = "${local.name_prefix}-alb"
@@ -166,16 +166,16 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([
     {
-      name      = "app"
-      image     = var.container_image
-      essential = true
-      portMappings = [
+      name             = "app"
+      image            = var.container_image
+      essential        = true
+      portMappings     = [
         {
           containerPort = var.container_port
           protocol      = "tcp"
         }
       ]
-      secrets = [
+      secrets          = [
         { name = "DB_USERNAME", valueFrom = "${var.db_secret_arn}:username::" },
         { name = "DB_PASSWORD", valueFrom = "${var.db_secret_arn}:password::" },
         { name = "DB_HOST", valueFrom = "${var.db_secret_arn}:host::" },
@@ -184,7 +184,7 @@ resource "aws_ecs_task_definition" "this" {
       ]
       logConfiguration = {
         logDriver = "awslogs"
-        options = {
+        options   = {
           "awslogs-group"         = aws_cloudwatch_log_group.app.name
           "awslogs-region"        = data.aws_region.current.name
           "awslogs-stream-prefix" = "app"
